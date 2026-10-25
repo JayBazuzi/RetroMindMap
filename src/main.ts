@@ -125,8 +125,7 @@ function branchColor(id: string): string {
   if (id === ROOT_ID) return "#343a40";
   let n = nodes[id];
   while (n && n.parentId !== ROOT_ID && n.parentId) n = nodes[n.parentId];
-  const index = childrenOf(nodes, ROOT_ID).indexOf(n);
-  return BRANCH_COLORS[Math.max(0, index) % BRANCH_COLORS.length];
+  return BRANCH_COLORS[(n?.color ?? 0) % BRANCH_COLORS.length];
 }
 
 function applyTransform() {
@@ -347,6 +346,7 @@ function moveNode(id: string, newParentId: string, side?: Side) {
     parentId: newParentId,
     order: placed.order,
     side: newParentId === ROOT_ID ? (side ?? placed.side) : undefined,
+    color: placed.color,
   });
 }
 

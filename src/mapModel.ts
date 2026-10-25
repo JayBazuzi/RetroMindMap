@@ -8,11 +8,14 @@ export interface MapNode {
   order: number;
   /** Only meaningful for children of the root. */
   side?: Side;
+  /** Branch color index; only meaningful for children of the root. */
+  color?: number;
 }
 
 export type MapNodes = Record<string, MapNode>;
 
 export const ROOT_ID = "root";
+export const BRANCH_COLOR_COUNT = 7;
 
 export function newId(): string {
   return crypto.randomUUID().slice(0, 8);
@@ -53,6 +56,9 @@ export function makeChild(
   if (parentId === ROOT_ID) {
     const rights = siblings.filter((s) => s.side !== "left").length;
     node.side = rights > siblings.length - rights ? "left" : "right";
+    const uses = Array<number>(BRANCH_COLOR_COUNT).fill(0);
+    for (const s of siblings) if (s.color !== undefined) uses[s.color]++;
+    node.color = uses.indexOf(Math.min(...uses));
   }
   return node;
 }

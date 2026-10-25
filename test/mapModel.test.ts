@@ -91,3 +91,12 @@ describe("layout", () => {
     expect((boxes[r1].y + boxes[r2].y) / 2).toBeCloseTo(boxes[r].y);
   });
 });
+
+test("top-level branches get distinct colors, reusing freed ones", () => {
+  const m = emptyMap();
+  const ids = [1, 2, 3].map((i) => add(m, makeChild(m, ROOT_ID, `c${i}`)));
+  expect(ids.map((id) => m[id].color)).toEqual([0, 1, 2]);
+  const freed = m[ids[1]].color;
+  delete m[ids[1]];
+  expect(makeChild(m, ROOT_ID).color).toBe(freed);
+});
