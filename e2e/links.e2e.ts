@@ -64,12 +64,15 @@ test("editing shows plain text, and the link comes back after", async ({
 test("Copy outline also puts linked HTML on the clipboard", async ({
   page,
 }) => {
+  await page.evaluate(() => navigator.clipboard.writeText(""));
   await page.getByRole("button", { name: "Copy outline" }).click();
-  const html = await page.evaluate(async () => {
-    const [item] = await navigator.clipboard.read();
-    return (await item.getType("text/html")).text();
-  });
-  expect(html).toContain(`<a href="${URL}">${URL}</a>`);
+  const html = () =>
+    page.evaluate(async () => {
+      const [item] = await navigator.clipboard.read();
+      if (!item.types.includes("text/html")) return "";
+      return (await item.getType("text/html")).text();
+    });
+  await expect.poll(html).toContain(`<a href="${URL}">${URL}</a>`);
 });
 
 test("non-http text that looks like a link stays plain", async ({ page }) => {
