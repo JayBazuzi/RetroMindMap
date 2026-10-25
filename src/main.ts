@@ -13,6 +13,7 @@ import {
   subtreeIds,
   toOutline,
 } from "./mapModel";
+import { copyMapImage, drawMap } from "./mapImage";
 import { MapStore, openStore, Presence } from "./store";
 
 const BRANCH_COLORS = [
@@ -56,6 +57,7 @@ app.innerHTML = `
   <header class="toolbar">
     <strong class="brand">Retro Mind Map</strong>
     <button data-action="share" title="Copy a link others can open">Copy share link</button>
+    <button data-action="image" title="Copy the whole map as a picture">Copy image</button>
     <button data-action="outline" title="Copy the map as a bulleted outline">Copy outline</button>
     <button data-action="export">Export</button>
     <label class="button">Import<input type="file" accept=".json" hidden data-action="import" /></label>
@@ -408,7 +410,9 @@ viewport.addEventListener("keydown", (e) => {
       if (nodes[id]) addChild(id);
     } else if (e.key === "Escape") {
       e.preventDefault();
-      finishEdit({ cancel: true });
+      // Esc on a new idea keeps what was typed; only an empty one is discarded.
+      const typed = elements.get(editingId)?.innerText.trim();
+      finishEdit({ cancel: !(editIsNew && typed) });
     }
     return;
   }
@@ -568,6 +572,14 @@ app.querySelector(".toolbar")!.addEventListener("click", async (e) => {
   if (action === "share") {
     await navigator.clipboard.writeText(location.href);
     flash("Link copied — anyone with it can edit");
+  } else if (action === "image") {
+    if (editingId) finishEdit();
+    try {
+      await copyMapImage(drawMap(nodes, boxes, elements, branchColor));
+      flash("Image copied — paste it anywhere");
+    } catch {
+      flash("Couldn't copy the image in this browser");
+    }
   } else if (action === "outline") {
     await navigator.clipboard.writeText(toOutline(nodes));
     flash("Outline copied");
