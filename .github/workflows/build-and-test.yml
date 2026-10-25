@@ -1,0 +1,19 @@
+name: Build and Test
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "17 7 * * 0"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: ./build-and-test.cmd
