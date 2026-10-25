@@ -86,9 +86,14 @@ test("Copy image puts a PNG of the whole map on the clipboard", async ({
         Math.min(...rects.map((r) => r.top)),
     };
   });
-  // 2x resolution, plus a 32px margin on each side.
-  expect(size.width).toBeCloseTo((map.width + 64) * 2, -1);
-  expect(size.height).toBeCloseTo((map.height + 64) * 2, -1);
+  // 2x resolution, plus a 32px margin on each side. Layout rounds node sizes
+  // to whole pixels, so allow a little drift from the on-screen measurement.
+  const ratio = (actual: number, mapSize: number) =>
+    actual / ((mapSize + 64) * 2);
+  expect(ratio(size.width, map.width)).toBeGreaterThan(0.98);
+  expect(ratio(size.width, map.width)).toBeLessThan(1.02);
+  expect(ratio(size.height, map.height)).toBeGreaterThan(0.98);
+  expect(ratio(size.height, map.height)).toBeLessThan(1.02);
 });
 
 test("Export then Import round-trips the map", async ({ page }) => {
