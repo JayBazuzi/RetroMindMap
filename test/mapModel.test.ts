@@ -7,6 +7,7 @@ import {
   makeSiblingAfter,
   MapNodes,
   newRetroMap,
+  orphanIds,
   PEDDLES,
   neighborAfterDelete,
   ROOT_ID,
@@ -109,4 +110,14 @@ test("new retro map is preloaded with PEDDLES, each its own color", () => {
   expect(categories.map((c) => c.text)).toEqual(PEDDLES);
   expect(new Set(categories.map((c) => c.color)).size).toBe(8);
   expect(newRetroMap()).toEqual(m);
+});
+
+test("orphans are nodes cut off from the root", () => {
+  const m = newRetroMap();
+  const idea = add(m, makeChild(m, "peddles-tools", "idea"));
+  const deeper = add(m, makeChild(m, idea, "deeper"));
+  expect(orphanIds(m)).toEqual([]);
+  delete m["peddles-tools"];
+  m.fragment = { text: "typed after delete" } as MapNodes[string];
+  expect(orphanIds(m).sort()).toEqual([idea, deeper, "fragment"].sort());
 });

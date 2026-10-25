@@ -153,3 +153,12 @@ export function toOutline(nodes: MapNodes, id = ROOT_ID, depth = 0): string {
       .join("")
   );
 }
+
+/**
+ * Nodes no longer connected to the root: under a branch someone deleted, or
+ * fragments left when an edit landed on a node after it was deleted.
+ */
+export function orphanIds(nodes: MapNodes): string[] {
+  const connected = new Set(subtreeIds(nodes, ROOT_ID));
+  return Object.keys(nodes).filter((id) => !connected.has(id));
+}

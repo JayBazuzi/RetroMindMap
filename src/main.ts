@@ -7,6 +7,7 @@ import {
   makeSiblingAfter,
   MapNodes,
   neighborAfterDelete,
+  orphanIds,
   ROOT_ID,
   Side,
   sideOf,
@@ -154,14 +155,18 @@ function elementFor(id: string): HTMLDivElement {
 }
 
 function render() {
+  if (selectedId && !nodes[selectedId]) selectedId = ROOT_ID;
+  // Someone deleted what we were editing. Stop editing before its element goes,
+  // since removing a focused element fires focusout, which would finish the edit.
+  const lostEdit = editingId !== null && !nodes[editingId];
+  if (lostEdit) editingId = null;
   for (const [id, el] of elements) {
     if (!nodes[id]) {
-      el.remove();
       elements.delete(id);
+      el.remove();
     }
   }
-  if (selectedId && !nodes[selectedId]) selectedId = ROOT_ID;
-  if (editingId && !nodes[editingId]) editingId = null;
+  if (lostEdit) viewport.focus();
 
   for (const node of Object.values(nodes)) {
     const el = elementFor(node.id);
@@ -287,7 +292,8 @@ function finishEdit({ cancel = false } = {}) {
 
 canvas.addEventListener("input", (e) => {
   const el = e.target as HTMLElement;
-  if (el.dataset.id === editingId) {
+  // Skip if someone deleted the node mid-edit, so typing can't recreate it.
+  if (el.dataset.id === editingId && nodes[editingId]) {
     // Live typing is visible to everyone.
     store.update(editingId!, { text: el.innerText });
     render();
@@ -533,8 +539,8 @@ viewport.addEventListener("pointerup", (e) => {
 });
 
 viewport.addEventListener("dblclick", (e) => {
-  const id = (e.target as HTMLElement).closest<HTMLElement>(".node")?.dataset
-    .id;
+  // Pointer capture retargets this event to the viewport, so hit-test instead.
+  const id = nodeAt(e.clientX, e.clientY);
   if (id) startEdit(id);
   else addChild(ROOT_ID);
 });
@@ -569,6 +575,8 @@ viewport.addEventListener(
 app.querySelector(".toolbar")!.addEventListener("click", async (e) => {
   const action = (e.target as HTMLElement).closest<HTMLElement>("[data-action]")
     ?.dataset.action;
+  // Hand the keyboard back to the map so shortcuts keep working.
+  if (action) viewport.focus();
   if (action === "share") {
     await navigator.clipboard.writeText(location.href);
     flash("Link copied — anyone with it can edit");
@@ -638,6 +646,8 @@ openStore(roomFromHash()).then((s) => {
   store = s;
   store.onNodes((n) => {
     nodes = n;
+    const orphans = orphanIds(n);
+    if (orphans.length) store.remove(orphans);
     render();
   });
   store.onPresence((p) => {
