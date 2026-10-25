@@ -26,6 +26,8 @@ export function node(page: Page, text: string) {
   return page.locator(".node").filter({ hasText: new RegExp(`^${text}$`) });
 }
 
+export const root = (page: Page) => page.locator(".node.root");
+
 export const selected = (page: Page) => page.locator(".node.selected");
 
 /** The map as an outline, read straight from the clipboard via the toolbar. */

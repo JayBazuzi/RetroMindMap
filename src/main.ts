@@ -12,6 +12,7 @@ import {
   Side,
   sideOf,
   subtreeIds,
+  TOPIC_PLACEHOLDER,
   toOutline,
 } from "./mapModel";
 import { copyMapImage, drawMap } from "./mapImage";
@@ -257,13 +258,19 @@ function startEdit(id: string, { replace = false, isNew = false } = {}) {
   editOriginal = nodes[id].text;
   editIsNew = isNew;
   selectedId = id;
-  if (replace) el.textContent = "";
+  const placeholder = editOriginal.indexOf(TOPIC_PLACEHOLDER);
+  if (replace && placeholder < 0) el.textContent = "";
   el.contentEditable = "plaintext-only";
   render();
   el.focus();
   const range = document.createRange();
-  range.selectNodeContents(el);
-  range.collapse(false);
+  if (placeholder >= 0 && el.firstChild) {
+    range.setStart(el.firstChild, placeholder);
+    range.setEnd(el.firstChild, placeholder + TOPIC_PLACEHOLDER.length);
+  } else {
+    range.selectNodeContents(el);
+    range.collapse(false);
+  }
   getSelection()?.removeAllRanges();
   getSelection()?.addRange(range);
   publishPresence();

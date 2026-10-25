@@ -1,5 +1,13 @@
 import { expect, test } from "@playwright/test";
-import { addIdea, node, openRoom, outline, PEDDLES, selected } from "./helpers";
+import {
+  addIdea,
+  root,
+  node,
+  openRoom,
+  outline,
+  PEDDLES,
+  selected,
+} from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await openRoom(page);
@@ -64,7 +72,7 @@ test("arrow keys move between parent, children, and siblings", async ({
   page,
 }) => {
   await addIdea(page, "patterns", "Same bug twice");
-  await node(page, "Retro").click();
+  await root(page).click();
   await page.keyboard.press("ArrowRight");
   await expect(selected(page)).toHaveText("patterns");
   await page.keyboard.press("ArrowRight");
@@ -76,7 +84,7 @@ test("arrow keys move between parent, children, and siblings", async ({
   await page.keyboard.press("ArrowUp");
   await expect(selected(page)).toHaveText("patterns");
   await page.keyboard.press("ArrowLeft");
-  await expect(selected(page)).toHaveText("Retro");
+  await expect(selected(page)).toHaveClass(/root/);
   await page.keyboard.press("ArrowLeft");
   await expect(selected(page)).toHaveText("emotions");
 });
@@ -92,9 +100,9 @@ test("Delete removes a subtree and Ctrl+Z brings it back", async ({ page }) => {
 });
 
 test("the center can't be deleted", async ({ page }) => {
-  await node(page, "Retro").click();
+  await root(page).click();
   await page.keyboard.press("Delete");
-  await expect(node(page, "Retro")).toBeVisible();
+  await expect(root(page)).toBeVisible();
   await expect(page.locator(".status")).toContainText("can't be deleted");
 });
 
@@ -111,7 +119,7 @@ test("Alt+Up and Alt+Down reorder siblings", async ({ page }) => {
 test("double-click edits a node; double-click on empty space adds an idea", async ({
   page,
 }) => {
-  await node(page, "Retro").dblclick();
+  await root(page).dblclick();
   await page.keyboard.press("Control+a");
   await page.keyboard.type("Sprint 12");
   await page.keyboard.press("Enter");
@@ -122,4 +130,32 @@ test("double-click edits a node; double-click on empty space adds an idea", asyn
   await page.keyboard.type("Loose thought");
   await page.keyboard.press("Escape");
   await expect(node(page, "Loose thought")).toHaveClass(/category/);
+});
+
+test("the center starts as today's date and {TOPIC}", async ({ page }) => {
+  const today = await page.evaluate(() => {
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  });
+  await expect(root(page)).toHaveText(`${today} {TOPIC}`);
+
+  // Typing on the selected center fills in just the topic.
+  await root(page).click();
+  await page.keyboard.type("Deploys");
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Escape"); // discards the empty child Enter made
+  await expect(root(page)).toHaveText(`${today} Deploys`);
+});
+
+test("F2 on the center selects the {TOPIC} placeholder", async ({ page }) => {
+  await root(page).click();
+  await page.keyboard.press("F2");
+  await page.keyboard.type("Onboarding");
+  await page.keyboard.press("Escape");
+  await expect(root(page)).toHaveText(/^\d{4}-\d\d-\d\d \{TOPIC\}$/); // Esc cancels
+  await page.keyboard.press("F2");
+  await page.keyboard.type("Onboarding");
+  await page.keyboard.press("Enter");
+  await expect(root(page)).toHaveText(/^\d{4}-\d\d-\d\d Onboarding$/);
 });

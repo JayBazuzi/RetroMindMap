@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { addIdea, node, openRoom, outline } from "./helpers";
+import { addIdea, root, node, openRoom, outline } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await openRoom(page);
@@ -22,7 +22,7 @@ test("dragging a category to open space on the other side flips it", async ({
   page,
 }) => {
   const box = (await node(page, "patterns").boundingBox())!;
-  const center = (await node(page, "Retro").boundingBox())!;
+  const center = (await root(page).boundingBox())!;
   expect(box.x).toBeGreaterThan(center.x);
   await node(page, "patterns").hover();
   await page.mouse.down();
@@ -34,12 +34,12 @@ test("dragging a category to open space on the other side flips it", async ({
 });
 
 test("dragging the background pans and Ctrl+wheel zooms", async ({ page }) => {
-  const before = (await node(page, "Retro").boundingBox())!;
+  const before = (await root(page).boundingBox())!;
   await page.mouse.move(50, 300);
   await page.mouse.down();
   await page.mouse.move(150, 350, { steps: 3 });
   await page.mouse.up();
-  const panned = (await node(page, "Retro").boundingBox())!;
+  const panned = (await root(page).boundingBox())!;
   expect(panned.x - before.x).toBeCloseTo(100, 0);
   expect(panned.y - before.y).toBeCloseTo(50, 0);
 
@@ -47,14 +47,11 @@ test("dragging the background pans and Ctrl+wheel zooms", async ({ page }) => {
   await page.mouse.wheel(0, -300);
   await page.keyboard.up("Control");
   await expect
-    .poll(async () => (await node(page, "Retro").boundingBox())!.width)
+    .poll(async () => (await root(page).boundingBox())!.width)
     .toBeGreaterThan(before.width * 1.2);
 
   await page.getByRole("button", { name: "Center" }).click();
-  expect((await node(page, "Retro").boundingBox())!.width).toBeCloseTo(
-    before.width,
-    0,
-  );
+  expect((await root(page).boundingBox())!.width).toBeCloseTo(before.width, 0);
 });
 
 test("Copy share link copies the room URL", async ({ page }) => {

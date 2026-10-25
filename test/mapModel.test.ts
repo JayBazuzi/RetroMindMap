@@ -121,3 +121,8 @@ test("orphans are nodes cut off from the root", () => {
   m.fragment = { text: "typed after delete" } as MapNodes[string];
   expect(orphanIds(m).sort()).toEqual([idea, deeper, "fragment"].sort());
 });
+
+test("a new map's center is today's date and a topic placeholder", () => {
+  const m = newRetroMap(new Date(2026, 9, 5));
+  expect(m[ROOT_ID].text).toBe("2026-10-05 {TOPIC}");
+});

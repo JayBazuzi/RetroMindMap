@@ -17,6 +17,9 @@ export type MapNodes = Record<string, MapNode>;
 export const ROOT_ID = "root";
 export const BRANCH_COLOR_COUNT = 8;
 
+/** Selected when editing the center, so typing fills in just the topic. */
+export const TOPIC_PLACEHOLDER = "{TOPIC}";
+
 /** PEDDLES retro categories. */
 export const PEDDLES = [
   "patterns",
@@ -37,12 +40,18 @@ export function emptyMap(title = "Retro"): MapNodes {
   return { [ROOT_ID]: { id: ROOT_ID, parentId: null, text: title, order: 0 } };
 }
 
+/** YYYY-MM-DD in local time. */
+export function isoDate(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 /**
  * A fresh map preloaded with the PEDDLES categories. Ids are fixed so that
  * clients creating the map at the same moment write the same nodes.
  */
-export function newRetroMap(): MapNodes {
-  const nodes = emptyMap();
+export function newRetroMap(today = new Date()): MapNodes {
+  const nodes = emptyMap(`${isoDate(today)} ${TOPIC_PLACEHOLDER}`);
   for (const text of PEDDLES) {
     const node = makeChild(nodes, ROOT_ID, text);
     node.id = `peddles-${text}`;
