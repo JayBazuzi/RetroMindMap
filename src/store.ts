@@ -1,4 +1,4 @@
-import { emptyMap, MapNode, MapNodes, ROOT_ID } from "./mapModel";
+import { newRetroMap, MapNode, MapNodes, ROOT_ID } from "./mapModel";
 
 export interface Presence {
   name: string;
@@ -75,7 +75,7 @@ export class LocalStore implements MapStore {
     } catch {
       // fall through to a fresh map
     }
-    return emptyMap();
+    return newRetroMap();
   }
 
   private post(m: Message) {

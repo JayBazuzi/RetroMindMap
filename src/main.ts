@@ -23,6 +23,7 @@ const BRANCH_COLORS = [
   "#c2255c",
   "#0c8599",
   "#f08c00",
+  "#5c7cfa",
 ];
 const PERSON_COLORS = [
   "#e03131",
@@ -166,6 +167,7 @@ function render() {
       el.textContent = node.text;
     }
     el.classList.toggle("root", node.id === ROOT_ID);
+    el.classList.toggle("category", node.parentId === ROOT_ID);
     el.classList.toggle("empty", !node.text && node.id !== editingId);
     el.classList.toggle("selected", node.id === selectedId);
     el.classList.toggle("editing", node.id === editingId);

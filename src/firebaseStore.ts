@@ -8,7 +8,7 @@ import {
   set,
   update,
 } from "firebase/database";
-import { emptyMap, MapNode, MapNodes, ROOT_ID } from "./mapModel";
+import { newRetroMap, MapNode, MapNodes, ROOT_ID } from "./mapModel";
 import { clientId, MapStore, Presence } from "./store";
 
 /**
@@ -33,9 +33,9 @@ export class FirebaseStore implements MapStore {
     onValue(ref(this.db, `${this.base}/nodes`), (snap) => {
       const nodes = (snap.val() ?? {}) as MapNodes;
       if (!nodes[ROOT_ID]) {
-        const root = emptyMap()[ROOT_ID];
-        set(ref(this.db, `${this.base}/nodes/${ROOT_ID}`), root);
-        nodes[ROOT_ID] = root;
+        const fresh = newRetroMap();
+        update(ref(this.db, `${this.base}/nodes`), fresh);
+        Object.assign(nodes, fresh);
       }
       cb(nodes);
     });

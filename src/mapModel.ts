@@ -15,7 +15,19 @@ export interface MapNode {
 export type MapNodes = Record<string, MapNode>;
 
 export const ROOT_ID = "root";
-export const BRANCH_COLOR_COUNT = 7;
+export const BRANCH_COLOR_COUNT = 8;
+
+/** PEDDLES retro categories. */
+export const PEDDLES = [
+  "patterns",
+  "emotions",
+  "tools",
+  "team",
+  "domain",
+  "language",
+  "events",
+  "surprises",
+];
 
 export function newId(): string {
   return crypto.randomUUID().slice(0, 8);
@@ -23,6 +35,20 @@ export function newId(): string {
 
 export function emptyMap(title = "Retro"): MapNodes {
   return { [ROOT_ID]: { id: ROOT_ID, parentId: null, text: title, order: 0 } };
+}
+
+/**
+ * A fresh map preloaded with the PEDDLES categories. Ids are fixed so that
+ * clients creating the map at the same moment write the same nodes.
+ */
+export function newRetroMap(): MapNodes {
+  const nodes = emptyMap();
+  for (const text of PEDDLES) {
+    const node = makeChild(nodes, ROOT_ID, text);
+    node.id = `peddles-${text}`;
+    nodes[node.id] = node;
+  }
+  return nodes;
 }
 
 export function childrenOf(nodes: MapNodes, parentId: string): MapNode[] {

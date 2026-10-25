@@ -6,6 +6,8 @@ import {
   makeChild,
   makeSiblingAfter,
   MapNodes,
+  newRetroMap,
+  PEDDLES,
   neighborAfterDelete,
   ROOT_ID,
   sideOf,
@@ -99,4 +101,12 @@ test("top-level branches get distinct colors, reusing freed ones", () => {
   const freed = m[ids[1]].color;
   delete m[ids[1]];
   expect(makeChild(m, ROOT_ID).color).toBe(freed);
+});
+
+test("new retro map is preloaded with PEDDLES, each its own color", () => {
+  const m = newRetroMap();
+  const categories = childrenOf(m, ROOT_ID);
+  expect(categories.map((c) => c.text)).toEqual(PEDDLES);
+  expect(new Set(categories.map((c) => c.color)).size).toBe(8);
+  expect(newRetroMap()).toEqual(m);
 });
