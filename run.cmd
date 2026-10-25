@@ -1,1 +1,1 @@
-@call npm run dev -- --open
+@call "C:\Program Files\Git\bin\bash.exe" %~dpn0 %*
