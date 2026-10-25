@@ -4,7 +4,7 @@
 
 A keyboard-first mind map for team retros. Everyone with the link edits live.
 
-**Use it:** https://jaybazuzi.github.io/RetroMindMap/
+**Use it:** https://jay.bazuzi.com/RetroMindMap/
 
 ## Development
 
