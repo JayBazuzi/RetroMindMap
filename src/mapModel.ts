@@ -1,0 +1,123 @@
+export type Side = "left" | "right";
+
+export interface MapNode {
+  id: string;
+  parentId: string | null;
+  text: string;
+  /** Fractional sort key among siblings, so concurrent inserts don't collide. */
+  order: number;
+  /** Only meaningful for children of the root. */
+  side?: Side;
+}
+
+export type MapNodes = Record<string, MapNode>;
+
+export const ROOT_ID = "root";
+
+export function newId(): string {
+  return crypto.randomUUID().slice(0, 8);
+}
+
+export function emptyMap(title = "Retro"): MapNodes {
+  return { [ROOT_ID]: { id: ROOT_ID, parentId: null, text: title, order: 0 } };
+}
+
+export function childrenOf(nodes: MapNodes, parentId: string): MapNode[] {
+  return Object.values(nodes)
+    .filter((n) => n.parentId === parentId)
+    .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+}
+
+export function sideOf(nodes: MapNodes, id: string): Side {
+  let node = nodes[id];
+  while (node && node.parentId !== null && node.parentId !== ROOT_ID) {
+    node = nodes[node.parentId];
+  }
+  return node?.side ?? "right";
+}
+
+/** Returns the new node, ready to be stored. */
+export function makeChild(
+  nodes: MapNodes,
+  parentId: string,
+  text = "",
+): MapNode {
+  const siblings = childrenOf(nodes, parentId);
+  const last = siblings[siblings.length - 1];
+  const node: MapNode = {
+    id: newId(),
+    parentId,
+    text,
+    order: last ? last.order + 1 : 0,
+  };
+  if (parentId === ROOT_ID) {
+    const rights = siblings.filter((s) => s.side !== "left").length;
+    node.side = rights > siblings.length - rights ? "left" : "right";
+  }
+  return node;
+}
+
+/** Returns the new node placed right after `id`, or null for the root. */
+export function makeSiblingAfter(
+  nodes: MapNodes,
+  id: string,
+  text = "",
+): MapNode | null {
+  const node = nodes[id];
+  if (!node || node.parentId === null) return null;
+  const siblings = childrenOf(nodes, node.parentId);
+  const next = siblings[siblings.indexOf(node) + 1];
+  const result: MapNode = {
+    id: newId(),
+    parentId: node.parentId,
+    text,
+    order: next ? (node.order + next.order) / 2 : node.order + 1,
+  };
+  if (node.side) result.side = node.side;
+  return result;
+}
+
+/** The node and all its descendants, ids only. */
+export function subtreeIds(nodes: MapNodes, id: string): string[] {
+  const result = [id];
+  for (const child of childrenOf(nodes, id)) {
+    result.push(...subtreeIds(nodes, child.id));
+  }
+  return result;
+}
+
+export function isAncestor(
+  nodes: MapNodes,
+  ancestorId: string,
+  id: string,
+): boolean {
+  for (let n = nodes[id]; n; n = nodes[n.parentId ?? ""]) {
+    if (n.id === ancestorId) return true;
+  }
+  return false;
+}
+
+/** Node to select after `id` is deleted. */
+export function neighborAfterDelete(nodes: MapNodes, id: string): string {
+  const node = nodes[id];
+  if (!node || node.parentId === null) return ROOT_ID;
+  const siblings = childrenOf(nodes, node.parentId);
+  const i = siblings.indexOf(node);
+  return (siblings[i + 1] ?? siblings[i - 1] ?? nodes[node.parentId]).id;
+}
+
+/** Text outline, handy for pasting retro results into notes. */
+export function toOutline(nodes: MapNodes, id = ROOT_ID, depth = 0): string {
+  const node = nodes[id];
+  if (!node) return "";
+  const line =
+    depth === 0
+      ? `${node.text}\n`
+      : `${"  ".repeat(depth - 1)}- ${node.text}\n`;
+  return (
+    line +
+    childrenOf(nodes, id)
+      .map((c) => toOutline(nodes, c.id, depth + 1))
+      .join("")
+  );
+}
