@@ -1,0 +1,23 @@
+{
+  "rules": {
+    "maps": {
+      "$room": {
+        ".validate": "$room.matches(/^[A-Za-z0-9_-]{4,64}$/)",
+        "nodes": {
+          ".read": true,
+          "$id": {
+            ".write": true,
+            ".validate": "newData.hasChildren(['id', 'parentId', 'text', 'order']) || $id === 'root' && newData.hasChildren(['id', 'text', 'order'])",
+            "text": {
+              ".validate": "newData.isString() && newData.val().length <= 1000"
+            }
+          }
+        },
+        "presence": {
+          ".read": true,
+          "$client": { ".write": true }
+        }
+      }
+    }
+  }
+}
