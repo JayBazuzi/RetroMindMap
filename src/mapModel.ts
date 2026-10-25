@@ -1,3 +1,5 @@
+import { toLinkedHtml } from "./links";
+
 export type Side = "left" | "right";
 
 export interface MapNode {
@@ -161,6 +163,20 @@ export function toOutline(nodes: MapNodes, id = ROOT_ID, depth = 0): string {
       .map((c) => toOutline(nodes, c.id, depth + 1))
       .join("")
   );
+}
+
+/** HTML outline, so links stay clickable when pasted into docs or chat. */
+export function toOutlineHtml(nodes: MapNodes): string {
+  const list = (id: string): string => {
+    const kids = childrenOf(nodes, id);
+    if (!kids.length) return "";
+    const items = kids.map(
+      (k) => `<li>${toLinkedHtml(k.text)}${list(k.id)}</li>`,
+    );
+    return `<ul>${items.join("")}</ul>`;
+  };
+  const root = nodes[ROOT_ID];
+  return root ? `<p><b>${toLinkedHtml(root.text)}</b></p>${list(ROOT_ID)}` : "";
 }
 
 /**

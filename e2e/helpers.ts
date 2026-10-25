@@ -23,7 +23,8 @@ export function uniqueRoom() {
 }
 
 export function node(page: Page, text: string) {
-  return page.locator(".node").filter({ hasText: new RegExp(`^${text}$`) });
+  const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return page.locator(".node").filter({ hasText: new RegExp(`^${escaped}$`) });
 }
 
 export const root = (page: Page) => page.locator(".node.root");

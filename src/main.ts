@@ -14,7 +14,9 @@ import {
   subtreeIds,
   TOPIC_PLACEHOLDER,
   toOutline,
+  toOutlineHtml,
 } from "./mapModel";
+import { linkify } from "./links";
 import { copyMapImage, drawMap } from "./mapImage";
 import { MapStore, openStore, Presence } from "./store";
 
@@ -85,11 +87,13 @@ app.innerHTML = `
       <dt>Alt+↑ / Alt+↓</dt><dd>Reorder</dd>
       <dt>Delete</dt><dd>Delete node and children</dd>
       <dt>Ctrl+Z</dt><dd>Undo your last delete</dd>
+      <dt>Ctrl+Enter</dt><dd>Open the link in the selected node</dd>
     </dl>
     <h2>Mouse</h2>
     <dl>
       <dt>Double-click</dt><dd>Edit (on background: add idea)</dd>
       <dt>Drag node</dt><dd>Move onto another node</dd>
+      <dt>Ctrl+click link</dt><dd>Open it</dd>
       <dt>Drag background</dt><dd>Pan</dd>
       <dt>Ctrl+wheel</dt><dd>Zoom</dd>
     </dl>
@@ -171,8 +175,8 @@ function render() {
 
   for (const node of Object.values(nodes)) {
     const el = elementFor(node.id);
-    if (node.id !== editingId && el.textContent !== node.text) {
-      el.textContent = node.text;
+    if (node.id !== editingId && el.dataset.shown !== node.text) {
+      showText(el, node.text);
     }
     el.classList.toggle("root", node.id === ROOT_ID);
     el.classList.toggle("category", node.parentId === ROOT_ID);
@@ -219,6 +223,31 @@ function render() {
   renderPeople();
 }
 
+const OPEN_HINT = /Mac|iPhone|iPad/.test(navigator.platform)
+  ? "⌘+click to open"
+  : "Ctrl+click to open";
+
+/** Node text with its URLs as links. */
+function showText(el: HTMLElement, text: string) {
+  el.replaceChildren(
+    ...linkify(text).map((part) => {
+      if (!part.href) return document.createTextNode(part.text);
+      const a = document.createElement("a");
+      a.href = part.href;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.title = OPEN_HINT;
+      a.textContent = part.text;
+      return a;
+    }),
+  );
+  el.dataset.shown = text;
+}
+
+function openLink(href: string) {
+  window.open(href, "_blank", "noopener,noreferrer");
+}
+
 function renderPeople() {
   people.replaceChildren(
     ...Object.values(others).map((p) => {
@@ -259,7 +288,9 @@ function startEdit(id: string, { replace = false, isNew = false } = {}) {
   editIsNew = isNew;
   selectedId = id;
   const placeholder = editOriginal.indexOf(TOPIC_PLACEHOLDER);
-  if (replace && placeholder < 0) el.textContent = "";
+  // Edit plain text; links come back when the edit finishes.
+  el.textContent = replace && placeholder < 0 ? "" : editOriginal;
+  delete el.dataset.shown;
   el.contentEditable = "plaintext-only";
   render();
   el.focus();
@@ -432,7 +463,11 @@ viewport.addEventListener("keydown", (e) => {
   const id = selectedId ?? ROOT_ID;
   const mod = e.ctrlKey || e.metaKey;
   if (e.key === "Tab") addChild(id);
-  else if (e.key === "Enter") addSibling(id);
+  else if (e.key === "Enter" && mod) {
+    const href = linkify(nodes[id]?.text ?? "").find((p) => p.href)?.href;
+    if (href) openLink(href);
+    else flash("No link in this node");
+  } else if (e.key === "Enter") addSibling(id);
   else if (e.key === "Delete" || e.key === "Backspace") deleteNode(id);
   else if (e.key === "F2" || e.key === " ") startEdit(id);
   else if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown"))
@@ -473,6 +508,12 @@ viewport.addEventListener("pointerdown", (e) => {
     .id;
   if (id && id === editingId) return;
   e.preventDefault();
+  // Pointer capture below keeps the link's own click from firing, so open it here.
+  const link = (e.target as HTMLElement).closest<HTMLAnchorElement>("a[href]");
+  if (link && (e.ctrlKey || e.metaKey)) {
+    openLink(link.href);
+    return;
+  }
   viewport.focus();
   if (id) {
     if (editingId) finishEdit();
@@ -596,7 +637,13 @@ app.querySelector(".toolbar")!.addEventListener("click", async (e) => {
       flash("Couldn't copy the image in this browser");
     }
   } else if (action === "outline") {
-    await navigator.clipboard.writeText(toOutline(nodes));
+    const blob = (text: string, type: string) => new Blob([text], { type });
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        "text/plain": blob(toOutline(nodes), "text/plain"),
+        "text/html": blob(toOutlineHtml(nodes), "text/html"),
+      }),
+    ]);
     flash("Outline copied");
   } else if (action === "export") {
     const blob = new Blob([JSON.stringify(nodes, null, 2)], {

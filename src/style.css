@@ -168,6 +168,14 @@ button:hover,
   font-weight: 700;
 }
 
+.node a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--branch);
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
 .node.empty::before {
   content: "…";
   color: var(--muted);
