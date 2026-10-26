@@ -8,10 +8,11 @@ A keyboard-first mind map for team retros. Everyone with the link edits live.
 
 ## Development
 
-- `npm install`
-- `run.cmd` to run locally
-- `build-and-test.cmd` to build and run tests
-- `tidy-code.cmd` to lint and format
+The scripts install dependencies as needed.
+
+- `./run` to run locally
+- `./build-and-test` to build and run tests
+- `./tidy-code` to lint and format
 
 ## Live sharing (Firebase)
 

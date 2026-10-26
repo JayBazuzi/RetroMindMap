@@ -16,5 +16,4 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - run: npx playwright install chromium
       - run: ./build-and-test.cmd

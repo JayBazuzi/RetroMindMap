@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+npm install --no-audit --no-fund
+npx playwright install chromium
 npm run build
 npm test
 npm run test:e2e
