@@ -124,5 +124,5 @@ test("orphans are nodes cut off from the root", () => {
 
 test("a new map's center is today's date and a topic placeholder", () => {
   const m = newRetroMap(new Date(2026, 9, 5));
-  expect(m[ROOT_ID].text).toBe("2026-10-05 {TOPIC}");
+  expect(m[ROOT_ID].text).toBe("2026-10-05\n{TOPIC}");
 });

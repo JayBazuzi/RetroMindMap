@@ -138,14 +138,14 @@ test("the center starts as today's date and {TOPIC}", async ({ page }) => {
     const pad = (n: number) => String(n).padStart(2, "0");
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   });
-  await expect(root(page)).toHaveText(`${today} {TOPIC}`);
+  await expect(root(page)).toHaveText(`${today}\n{TOPIC}`);
 
   // Typing on the selected center fills in just the topic.
   await root(page).click();
   await page.keyboard.type("Deploys");
   await page.keyboard.press("Enter");
   await page.keyboard.press("Escape"); // discards the empty child Enter made
-  await expect(root(page)).toHaveText(`${today} Deploys`);
+  await expect(root(page)).toHaveText(`${today}\nDeploys`);
 });
 
 test("F2 on the center selects the {TOPIC} placeholder", async ({ page }) => {
@@ -153,9 +153,9 @@ test("F2 on the center selects the {TOPIC} placeholder", async ({ page }) => {
   await page.keyboard.press("F2");
   await page.keyboard.type("Onboarding");
   await page.keyboard.press("Escape");
-  await expect(root(page)).toHaveText(/^\d{4}-\d\d-\d\d \{TOPIC\}$/); // Esc cancels
+  await expect(root(page)).toHaveText(/^\d{4}-\d\d-\d\d\n\{TOPIC\}$/); // Esc cancels
   await page.keyboard.press("F2");
   await page.keyboard.type("Onboarding");
   await page.keyboard.press("Enter");
-  await expect(root(page)).toHaveText(/^\d{4}-\d\d-\d\d Onboarding$/);
+  await expect(root(page)).toHaveText(/^\d{4}-\d\d-\d\d\nOnboarding$/);
 });

@@ -53,7 +53,7 @@ export function isoDate(d: Date): string {
  * clients creating the map at the same moment write the same nodes.
  */
 export function newRetroMap(today = new Date()): MapNodes {
-  const nodes = emptyMap(`${isoDate(today)} ${TOPIC_PLACEHOLDER}`);
+  const nodes = emptyMap(`${isoDate(today)}\n${TOPIC_PLACEHOLDER}`);
   for (const text of PEDDLES) {
     const node = makeChild(nodes, ROOT_ID, text);
     node.id = `peddles-${text}`;
