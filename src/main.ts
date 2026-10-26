@@ -7,6 +7,7 @@ import {
   makeSiblingAfter,
   MapNodes,
   neighborAfterDelete,
+  newRoomId,
   orphanIds,
   ROOT_ID,
   Side,
@@ -42,7 +43,7 @@ const PERSON_COLORS = [
 function roomFromHash(): string {
   let room = location.hash.slice(1);
   if (!/^[\w-]{4,64}$/.test(room)) {
-    room = crypto.randomUUID().slice(0, 13);
+    room = newRoomId();
     history.replaceState(null, "", `#${room}`);
   }
   return room;

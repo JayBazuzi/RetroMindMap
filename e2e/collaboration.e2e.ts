@@ -141,3 +141,16 @@ test("after your node is deleted mid-edit, the keyboard still works", async ({
   await expect(node(alex, "Still working")).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test("a new map's URL starts with today's date", async ({ page }) => {
+  await page.goto("/");
+  const today = await page.evaluate(() => {
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  });
+  await expect(page).toHaveURL(new RegExp(`#${today}-[0-9a-f]{12}$`));
+  const url = page.url();
+  await page.reload();
+  expect(page.url()).toBe(url);
+});

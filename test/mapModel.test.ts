@@ -7,6 +7,7 @@ import {
   makeSiblingAfter,
   MapNodes,
   newRetroMap,
+  newRoomId,
   orphanIds,
   PEDDLES,
   neighborAfterDelete,
@@ -125,4 +126,10 @@ test("orphans are nodes cut off from the root", () => {
 test("a new map's center is today's date and a topic placeholder", () => {
   const m = newRetroMap(new Date(2026, 9, 5));
   expect(m[ROOT_ID].text).toBe("2026-10-05\n{TOPIC}");
+});
+
+test("room ids start with the date and end with 12 random hex digits", () => {
+  const a = newRoomId(new Date(2026, 9, 5));
+  expect(a).toMatch(/^2026-10-05-[0-9a-f]{12}$/);
+  expect(newRoomId(new Date(2026, 9, 5))).not.toBe(a);
 });

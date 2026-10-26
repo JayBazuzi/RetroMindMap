@@ -49,6 +49,15 @@ export function isoDate(d: Date): string {
 }
 
 /**
+ * A new map's room id, e.g. 2026-10-25-3f9a1c2b7d4e. The random part keeps
+ * links unguessable, since anyone with one can edit the map.
+ */
+export function newRoomId(today = new Date()): string {
+  const random = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+  return `${isoDate(today)}-${random}`;
+}
+
+/**
  * A fresh map preloaded with the PEDDLES categories. Ids are fixed so that
  * clients creating the map at the same moment write the same nodes.
  */
