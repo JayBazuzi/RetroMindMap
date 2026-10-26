@@ -68,6 +68,29 @@ test("Esc on a new idea keeps typed text but discards an empty one", async ({
   );
 });
 
+test("Tab or Enter on an empty new idea discards it", async ({ page }) => {
+  await addIdea(page, "events", "Outage on Tuesday");
+  await node(page, "Outage on Tuesday").click();
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Tab");
+  await expect(page.locator(".node.editing")).toHaveCount(0);
+  await expect(selected(page)).toHaveText("Outage on Tuesday");
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Enter");
+  await expect(page.locator(".node.editing")).toHaveCount(0);
+  await expect(selected(page)).toHaveText("Outage on Tuesday");
+  expect(await outline(page)).toContain(
+    "- events\n  - Outage on Tuesday\n- surprises",
+  );
+});
+
+test("clicking away from an empty new idea discards it", async ({ page }) => {
+  await node(page, "events").click();
+  await page.keyboard.press("Tab");
+  await node(page, "team").click();
+  expect(await outline(page)).toContain("- events\n- surprises");
+});
+
 test("arrow keys move between parent, children, and siblings", async ({
   page,
 }) => {

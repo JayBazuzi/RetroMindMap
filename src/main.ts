@@ -117,6 +117,8 @@ let selectedId: string | null = ROOT_ID;
 let editingId: string | null = null;
 let editOriginal = "";
 let editIsNew = false;
+/** Selected again if a new node is discarded. */
+let editReturnId: string = ROOT_ID;
 let pan = { x: 0, y: 0 };
 let zoom = 1;
 const elements = new Map<string, HTMLDivElement>();
@@ -280,13 +282,17 @@ function select(id: string | null) {
 
 // ---- Editing -------------------------------------------------------------
 
-function startEdit(id: string, { replace = false, isNew = false } = {}) {
+function startEdit(
+  id: string,
+  { replace = false, isNew = false, returnTo = ROOT_ID } = {},
+) {
   if (editingId) finishEdit();
   const el = elements.get(id);
   if (!el) return;
   editingId = id;
   editOriginal = nodes[id].text;
   editIsNew = isNew;
+  editReturnId = returnTo;
   selectedId = id;
   const placeholder = editOriginal.indexOf(TOPIC_PLACEHOLDER);
   // Edit plain text; links come back when the edit finishes.
@@ -314,14 +320,16 @@ function finishEdit({ cancel = false } = {}) {
   const el = elements.get(id)!;
   editingId = null;
   el.contentEditable = "false";
-  if (cancel && editIsNew) {
-    selectedId = nodes[id]?.parentId ?? ROOT_ID;
+  const text = (el.innerText ?? "").trim();
+  // A new node left empty, however the edit ends, is discarded.
+  if (editIsNew && (cancel || !text)) {
+    selectedId = nodes[editReturnId] ? editReturnId : ROOT_ID;
     store.remove([id]);
   } else if (cancel) {
     el.textContent = editOriginal;
     store.update(id, { text: editOriginal });
   } else {
-    store.update(id, { text: (el.innerText ?? "").trim() });
+    store.update(id, { text });
   }
   if (document.activeElement === el || document.activeElement === document.body)
     viewport.focus();
@@ -348,14 +356,14 @@ canvas.addEventListener("focusout", (e) => {
 function addChild(parentId: string) {
   const node = makeChild(nodes, parentId);
   store.put(node);
-  startEdit(node.id, { isNew: true });
+  startEdit(node.id, { isNew: true, returnTo: parentId });
 }
 
 function addSibling(id: string) {
   const node = makeSiblingAfter(nodes, id);
   if (!node) return addChild(id);
   store.put(node);
-  startEdit(node.id, { isNew: true });
+  startEdit(node.id, { isNew: true, returnTo: id });
 }
 
 function deleteNode(id: string) {
@@ -455,9 +463,8 @@ viewport.addEventListener("keydown", (e) => {
       if (nodes[id]) addChild(id);
     } else if (e.key === "Escape") {
       e.preventDefault();
-      // Esc on a new idea keeps what was typed; only an empty one is discarded.
-      const typed = elements.get(editingId)?.innerText.trim();
-      finishEdit({ cancel: !(editIsNew && typed) });
+      // Esc on a new idea keeps what was typed; finishing discards an empty one.
+      finishEdit({ cancel: !editIsNew });
     }
     return;
   }
