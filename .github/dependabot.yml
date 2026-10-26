@@ -9,11 +9,6 @@ updates:
       default-days: 7
     commit-message:
       prefix: "- r "
-    ignore:
-      # typescript-eslint supports only TypeScript <6.1; lift this when it catches up.
-      - dependency-name: "typescript"
-        update-types:
-          ["version-update:semver-major", "version-update:semver-minor"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
