@@ -4,6 +4,9 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    # Most malicious npm releases are pulled within days; let them be caught first.
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: "- r "
     ignore:
@@ -15,5 +18,7 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: ". e "
