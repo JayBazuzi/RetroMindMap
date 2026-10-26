@@ -73,6 +73,8 @@ test("Copy image puts a PNG of the whole map on the clipboard", async ({
     const bitmap = await createImageBitmap(blob);
     return { width: bitmap.width, height: bitmap.height };
   });
+  // Nodes slide into place; measure where they end up, which is what the image draws.
+  await page.waitForFunction(() => document.getAnimations().length === 0);
   const map = await page.evaluate(() => {
     const rects = [...document.querySelectorAll(".node")].map((n) =>
       n.getBoundingClientRect(),
@@ -87,13 +89,13 @@ test("Copy image puts a PNG of the whole map on the clipboard", async ({
     };
   });
   // 2x resolution, plus a 32px margin on each side. Layout rounds node sizes
-  // to whole pixels, so allow a little drift from the on-screen measurement.
+  // to whole pixels, so allow a hair of drift from the on-screen measurement.
   const ratio = (actual: number, mapSize: number) =>
     actual / ((mapSize + 64) * 2);
-  expect(ratio(size.width, map.width)).toBeGreaterThan(0.98);
-  expect(ratio(size.width, map.width)).toBeLessThan(1.02);
-  expect(ratio(size.height, map.height)).toBeGreaterThan(0.98);
-  expect(ratio(size.height, map.height)).toBeLessThan(1.02);
+  expect(ratio(size.width, map.width)).toBeGreaterThan(0.99);
+  expect(ratio(size.width, map.width)).toBeLessThan(1.01);
+  expect(ratio(size.height, map.height)).toBeGreaterThan(0.99);
+  expect(ratio(size.height, map.height)).toBeLessThan(1.01);
 });
 
 test("Export then Import round-trips the map", async ({ page }) => {
