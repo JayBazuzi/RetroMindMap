@@ -49,6 +49,9 @@ export async function openRoom(page: Page, room = uniqueRoom()) {
     withFakeClipboard.add(page);
     await page.addInitScript(fakeClipboard);
   }
+  // Changing only the hash makes the app reload itself, and the checks below
+  // would pass on the old page first. Start from a blank page instead.
+  if (page.url() !== "about:blank") await page.goto("about:blank");
   await page.goto(`/#${room}`);
   await expect(page.locator(".node.root")).toBeVisible();
   await expect(page.locator(".viewport")).toBeFocused();
