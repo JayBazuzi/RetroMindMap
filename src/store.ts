@@ -6,6 +6,11 @@ export interface Presence {
   selectedId: string | null;
 }
 
+/** A peer's color, safe to put in CSS: anything but #rrggbb becomes gray. */
+export function peerColor(p: Presence): string {
+  return /^#[0-9a-f]{6}$/i.test(p.color) ? p.color : "#868e96";
+}
+
 export interface MapStore {
   readonly kind: string;
   onNodes(cb: (nodes: MapNodes) => void): void;

@@ -19,7 +19,7 @@ import {
 } from "./mapModel";
 import { linkify } from "./links";
 import { copyMapImage, drawMap } from "./mapImage";
-import { MapStore, openStore, Presence } from "./store";
+import { MapStore, openStore, peerColor, Presence } from "./store";
 
 const BRANCH_COLORS = [
   "#e8590c",
@@ -191,7 +191,7 @@ function render() {
   for (const p of Object.values(others)) {
     const el = p.selectedId ? elements.get(p.selectedId) : undefined;
     if (el) {
-      el.style.setProperty("--peer", p.color);
+      el.style.setProperty("--peer", peerColor(p));
       el.dataset.peer = p.name || "someone";
     }
   }
@@ -254,7 +254,7 @@ function renderPeople() {
     ...Object.values(others).map((p) => {
       const dot = document.createElement("span");
       dot.className = "person";
-      dot.style.background = p.color;
+      dot.style.background = peerColor(p);
       dot.textContent = (p.name || "?").slice(0, 1).toUpperCase();
       dot.title = p.name || "Someone";
       return dot;
