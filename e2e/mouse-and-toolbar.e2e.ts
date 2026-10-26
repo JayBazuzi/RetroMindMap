@@ -124,3 +124,13 @@ test("importing a file that isn't a map leaves the map alone", async ({
   await expect(page.locator(".status")).toContainText("isn't a Retro Mind Map");
   expect(await outline(page)).toBe(before);
 });
+
+test("the help panel links to the HTTP API reference", async ({ page }) => {
+  await page.getByTitle("Keyboard shortcuts").click();
+  const link = page.getByRole("link", { name: /over HTTP/ });
+  const response = await page.request.get(
+    new URL((await link.getAttribute("href"))!, page.url()).href,
+  );
+  expect(response.ok()).toBe(true);
+  expect(await response.text()).toContain("# Retro Mind Map REST Access");
+});

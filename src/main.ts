@@ -98,6 +98,8 @@ app.innerHTML = `
       <dt>Drag background</dt><dd>Pan</dd>
       <dt>Ctrl+wheel</dt><dd>Zoom</dd>
     </dl>
+    <h2>Scripts and AI</h2>
+    <p><a href="board-api.md" target="_blank" rel="noopener">Read and write a map over HTTP</a></p>
   </aside>
 `;
 
