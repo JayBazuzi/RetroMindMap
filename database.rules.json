@@ -7,15 +7,38 @@
           ".read": true,
           "$id": {
             ".write": true,
-            ".validate": "newData.hasChildren(['id', 'parentId', 'text', 'order']) || $id === 'root' && newData.hasChildren(['id', 'text', 'order'])",
+            ".validate": "$id.matches(/^[A-Za-z0-9_-]{1,64}$/) && newData.child('id').val() === $id && newData.hasChildren(['text', 'order']) && ($id === 'root' ? !newData.hasChild('parentId') : newData.child('parentId').isString())",
+            "id": { ".validate": "newData.isString()" },
+            "parentId": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{1,64}$/)"
+            },
             "text": {
               ".validate": "newData.isString() && newData.val().length <= 1000"
-            }
+            },
+            "order": { ".validate": "newData.isNumber()" },
+            "side": {
+              ".validate": "newData.val() === 'left' || newData.val() === 'right'"
+            },
+            "color": { ".validate": "newData.isNumber()" },
+            "$other": { ".validate": false }
           }
         },
         "presence": {
           ".read": true,
-          "$client": { ".write": true }
+          "$client": {
+            ".write": true,
+            ".validate": "$client.matches(/^[A-Za-z0-9_-]{1,64}$/) && newData.hasChildren(['name', 'color'])",
+            "name": {
+              ".validate": "newData.isString() && newData.val().length <= 24"
+            },
+            "color": {
+              ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/)"
+            },
+            "selectedId": {
+              ".validate": "newData.isString() && newData.val().length <= 64"
+            },
+            "$other": { ".validate": false }
+          }
         }
       }
     }
