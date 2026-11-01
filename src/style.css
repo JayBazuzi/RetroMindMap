@@ -67,6 +67,7 @@ button,
   background: var(--panel);
   color: var(--text);
   cursor: pointer;
+  text-decoration: none;
 }
 
 button:hover,

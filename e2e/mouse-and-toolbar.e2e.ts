@@ -61,6 +61,20 @@ test("Copy share link copies the room URL", async ({ page }) => {
   );
 });
 
+test("New board opens an empty board in a new tab", async ({ page }) => {
+  await addIdea(page, "surprises", "We shipped early");
+  const [newTab] = await Promise.all([
+    page.waitForEvent("popup"),
+    page.getByRole("link", { name: "New board" }).click(),
+  ]);
+  await expect(newTab.locator(".node.root")).toBeVisible();
+  expect(new URL(newTab.url()).hash).toMatch(/^#[\w-]{4,64}$/);
+  expect(new URL(newTab.url()).hash).not.toBe(new URL(page.url()).hash);
+  await expect(
+    newTab.locator(".node", { hasText: "We shipped early" }),
+  ).toHaveCount(0);
+});
+
 test("Copy image puts a PNG of the whole map on the clipboard", async ({
   page,
 }) => {

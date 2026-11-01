@@ -61,6 +61,7 @@ const app = document.querySelector<HTMLDivElement>("#app")!;
 app.innerHTML = `
   <header class="toolbar">
     <strong class="brand">Retro Mind Map</strong>
+    <a class="button" href="./" target="_blank" title="Start an empty board in a new tab">New board</a>
     <button data-action="share" title="Copy a link others can open">Copy share link</button>
     <button data-action="image" title="Copy the whole map as a picture">Copy image</button>
     <button data-action="outline" title="Copy the map as a bulleted outline">Copy outline</button>
