@@ -1,4 +1,4 @@
-import { Box } from "./layout";
+import { Box, mapBounds } from "./layout";
 import { MapNodes } from "./mapModel";
 
 const MARGIN = 32;
@@ -15,18 +15,7 @@ export function drawMap(
   colorOf: (id: string) => string,
 ): HTMLCanvasElement {
   const placed = Object.values(nodes).filter((n) => boxes[n.id]);
-  const left = Math.min(
-    ...placed.map((n) => boxes[n.id].x - boxes[n.id].width / 2),
-  );
-  const right = Math.max(
-    ...placed.map((n) => boxes[n.id].x + boxes[n.id].width / 2),
-  );
-  const top = Math.min(
-    ...placed.map((n) => boxes[n.id].y - boxes[n.id].height / 2),
-  );
-  const bottom = Math.max(
-    ...placed.map((n) => boxes[n.id].y + boxes[n.id].height / 2),
-  );
+  const { left, right, top, bottom } = mapBounds(boxes);
 
   const canvas = document.createElement("canvas");
   canvas.width = (right - left + 2 * MARGIN) * SCALE;

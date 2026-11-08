@@ -84,3 +84,14 @@ export function layout(
   }
   return boxes;
 }
+
+/** The smallest rectangle containing every box. */
+export function mapBounds(boxes: Record<string, Box>) {
+  const all = Object.values(boxes);
+  return {
+    left: Math.min(...all.map((b) => b.x - b.width / 2)),
+    right: Math.max(...all.map((b) => b.x + b.width / 2)),
+    top: Math.min(...all.map((b) => b.y - b.height / 2)),
+    bottom: Math.max(...all.map((b) => b.y + b.height / 2)),
+  };
+}

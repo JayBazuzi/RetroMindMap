@@ -70,6 +70,23 @@ test("the zoom buttons zoom in and out", async ({ page }) => {
   );
 });
 
+test("Center fits the whole map on screen", async ({ page }) => {
+  await page.setViewportSize({ width: 400, height: 300 });
+  await page.getByRole("button", { name: "Zoom in" }).click();
+  await page.getByRole("button", { name: "Center" }).click();
+
+  const viewport = (await page.locator(".viewport").boundingBox())!;
+  const rects = await page
+    .locator(".node")
+    .evaluateAll((all) => all.map((n) => n.getBoundingClientRect().toJSON()));
+  for (const rect of rects) {
+    expect(rect.left).toBeGreaterThanOrEqual(viewport.x);
+    expect(rect.top).toBeGreaterThanOrEqual(viewport.y);
+    expect(rect.right).toBeLessThanOrEqual(viewport.x + viewport.width);
+    expect(rect.bottom).toBeLessThanOrEqual(viewport.y + viewport.height);
+  }
+});
+
 test("Copy share link copies the room URL", async ({ page }) => {
   await page.getByRole("button", { name: "Copy share link" }).click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(

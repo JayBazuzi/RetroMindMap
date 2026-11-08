@@ -1,5 +1,5 @@
 import "./style.css";
-import { layout, Box } from "./layout";
+import { layout, mapBounds, Box } from "./layout";
 import {
   childrenOf,
   isAncestor,
@@ -69,7 +69,7 @@ app.innerHTML = `
     <label class="button">Import<input type="file" accept=".json" hidden data-action="import" /></label>
     <button data-action="zoom-out" title="Zoom out" aria-label="Zoom out">−</button>
     <button data-action="zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
-    <button data-action="center">Center</button>
+    <button data-action="center" title="Fit the whole map on screen">Center</button>
     <span class="spacer"></span>
     <span class="people"></span>
     <input class="name" placeholder="Your name" maxlength="24" />
@@ -127,6 +127,7 @@ let editReturnId: string = ROOT_ID;
 let pan = { x: 0, y: 0 };
 let zoom = 1;
 const ZOOM_STEP = 1.25;
+const FIT_MARGIN = 24;
 const elements = new Map<string, HTMLDivElement>();
 const undoStack: MapNodes[] = [];
 const myColor = PERSON_COLORS[Math.floor(Math.random() * PERSON_COLORS.length)];
@@ -168,6 +169,27 @@ function zoomStep(factor: number) {
 function centerView() {
   pan = { x: viewport.clientWidth / 2, y: viewport.clientHeight / 2 };
   zoom = 1;
+  applyTransform();
+}
+
+/** Centers the map, shrinking it if needed so all of it is on screen. */
+function fitView() {
+  if (Object.keys(boxes).length === 0) return centerView();
+  const { left, right, top, bottom } = mapBounds(boxes);
+  const width = viewport.clientWidth;
+  const height = viewport.clientHeight;
+  zoom = Math.max(
+    0.2,
+    Math.min(
+      1,
+      (width - 2 * FIT_MARGIN) / (right - left),
+      (height - 2 * FIT_MARGIN) / (bottom - top),
+    ),
+  );
+  pan = {
+    x: width / 2 - (zoom * (left + right)) / 2,
+    y: height / 2 - (zoom * (top + bottom)) / 2,
+  };
   applyTransform();
 }
 
@@ -685,7 +707,7 @@ app.querySelector(".toolbar")!.addEventListener("click", async (e) => {
   } else if (action === "zoom-out") {
     zoomStep(1 / ZOOM_STEP);
   } else if (action === "center") {
-    centerView();
+    fitView();
   } else if (action === "help") {
     help.hidden = !help.hidden;
   }
