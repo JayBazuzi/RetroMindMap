@@ -67,6 +67,8 @@ app.innerHTML = `
     <button data-action="outline" title="Copy the map as a bulleted outline">Copy outline</button>
     <button data-action="export">Export</button>
     <label class="button">Import<input type="file" accept=".json" hidden data-action="import" /></label>
+    <button data-action="zoom-out" title="Zoom out" aria-label="Zoom out">−</button>
+    <button data-action="zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
     <button data-action="center">Center</button>
     <span class="spacer"></span>
     <span class="people"></span>
@@ -124,6 +126,7 @@ let editIsNew = false;
 let editReturnId: string = ROOT_ID;
 let pan = { x: 0, y: 0 };
 let zoom = 1;
+const ZOOM_STEP = 1.25;
 const elements = new Map<string, HTMLDivElement>();
 const undoStack: MapNodes[] = [];
 const myColor = PERSON_COLORS[Math.floor(Math.random() * PERSON_COLORS.length)];
@@ -145,6 +148,21 @@ function branchColor(id: string): string {
 
 function applyTransform() {
   canvas.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
+}
+
+/** Zooms by a factor, keeping the given viewport point still. */
+function zoomBy(factor: number, cx: number, cy: number) {
+  const next = Math.min(3, Math.max(0.2, zoom * factor));
+  pan = {
+    x: cx - ((cx - pan.x) * next) / zoom,
+    y: cy - ((cy - pan.y) * next) / zoom,
+  };
+  zoom = next;
+  applyTransform();
+}
+
+function zoomStep(factor: number) {
+  zoomBy(factor, viewport.clientWidth / 2, viewport.clientHeight / 2);
 }
 
 function centerView() {
@@ -610,21 +628,15 @@ viewport.addEventListener(
     e.preventDefault();
     if (e.ctrlKey || e.metaKey) {
       const rect = viewport.getBoundingClientRect();
-      const cx = e.clientX - rect.left;
-      const cy = e.clientY - rect.top;
-      const next = Math.min(
-        3,
-        Math.max(0.2, zoom * Math.exp(-e.deltaY * 0.0015)),
+      zoomBy(
+        Math.exp(-e.deltaY * 0.0015),
+        e.clientX - rect.left,
+        e.clientY - rect.top,
       );
-      pan = {
-        x: cx - ((cx - pan.x) * next) / zoom,
-        y: cy - ((cy - pan.y) * next) / zoom,
-      };
-      zoom = next;
     } else {
       pan = { x: pan.x - e.deltaX, y: pan.y - e.deltaY };
+      applyTransform();
     }
-    applyTransform();
   },
   { passive: false },
 );
@@ -668,6 +680,10 @@ app.querySelector(".toolbar")!.addEventListener("click", async (e) => {
     );
     a.click();
     URL.revokeObjectURL(a.href);
+  } else if (action === "zoom-in") {
+    zoomStep(ZOOM_STEP);
+  } else if (action === "zoom-out") {
+    zoomStep(1 / ZOOM_STEP);
   } else if (action === "center") {
     centerView();
   } else if (action === "help") {

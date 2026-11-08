@@ -54,6 +54,22 @@ test("dragging the background pans and Ctrl+wheel zooms", async ({ page }) => {
   expect((await root(page).boundingBox())!.width).toBeCloseTo(before.width, 0);
 });
 
+test("the zoom buttons zoom in and out", async ({ page }) => {
+  const before = (await root(page).boundingBox())!;
+  await page.getByRole("button", { name: "Zoom in" }).click();
+  expect((await root(page).boundingBox())!.width).toBeCloseTo(
+    before.width * 1.25,
+    0,
+  );
+
+  await page.getByRole("button", { name: "Zoom out" }).click();
+  await page.getByRole("button", { name: "Zoom out" }).click();
+  expect((await root(page).boundingBox())!.width).toBeCloseTo(
+    before.width / 1.25,
+    0,
+  );
+});
+
 test("Copy share link copies the room URL", async ({ page }) => {
   await page.getByRole("button", { name: "Copy share link" }).click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
