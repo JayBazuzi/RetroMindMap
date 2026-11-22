@@ -1,8 +1,0 @@
-{
-  "replacementPatterns": [
-    {
-      "pattern": "^/",
-      "replacement": "https://github.com/JayBazuzi/RetroMindMap/blob/main/"
-    }
-  ]
-}
